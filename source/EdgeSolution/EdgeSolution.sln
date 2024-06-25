@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{57524393-AF63-4D43-9D74-65546D023BDF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RedisClientModule", "modules\RedisClientModule\RedisClientModule.csproj", "{6E792FFA-2A0B-4157-8089-94A74C031D50}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6E792FFA-2A0B-4157-8089-94A74C031D50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E792FFA-2A0B-4157-8089-94A74C031D50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E792FFA-2A0B-4157-8089-94A74C031D50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E792FFA-2A0B-4157-8089-94A74C031D50}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6E792FFA-2A0B-4157-8089-94A74C031D50} = {57524393-AF63-4D43-9D74-65546D023BDF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B5E41F77-8711-440E-9CAD-150082C55C00}
+	EndGlobalSection
+EndGlobal
