@@ -9,7 +9,13 @@
           "settings": {
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
-            "registryCredentials": {}
+            "registryCredentials": {
+              "docker": {
+                "username": "$CONTAINER_REGISTRY_USERNAME_docker",
+                "password": "$CONTAINER_REGISTRY_PASSWORD_docker",
+                "address": "docker.io"
+              }
+            }
           }
         },
         "systemModules": {
@@ -70,6 +76,16 @@
               "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.4",
               "createOptions": {}
             }
+          },
+          "RedisSyncModule": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.RedisSyncModule}",
+              "createOptions": {}
+            }
           }
         }
       }
@@ -79,7 +95,8 @@
         "schemaVersion": "1.1",
         "routes": {
           "RedisClientModuleToIoTHub": "FROM /messages/modules/RedisClientModule/outputs/* INTO $upstream",
-          "sensorToRedisClientModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/RedisClientModule/inputs/input1\")"
+          "sensorToRedisClientModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/RedisClientModule/inputs/input1\")",
+          "RedisSyncModuleToIoTHub": "FROM /messages/modules/RedisSyncModule/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
