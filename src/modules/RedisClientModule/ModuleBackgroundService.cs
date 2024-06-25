@@ -10,7 +10,7 @@ namespace RedisClientModule;
 internal class ModuleBackgroundService : BackgroundService
 {
     private static string DefaultEndpoint = string.Empty;
-    private static string Endpoint { get; set; } = DefaultEndpoint;
+    private string Endpoint { get; set; } = DefaultEndpoint;
 
     private ModuleClient? _moduleClient;
     private CancellationToken _cancellationToken;

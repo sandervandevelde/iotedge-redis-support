@@ -5,12 +5,26 @@ using Newtonsoft.Json;
 using StackExchange.Redis;
 using System.Text;
 
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+
 namespace RedisSyncModule;
 
 internal class ModuleBackgroundService : BackgroundService
 {
+    private string Endpoint { get; set; } = DefaultEndpoint;
+    private string StorageAccountName { get; set; } = DefaultStorageAccountName;
+    private string BlobContainerName { get; set; } = DefaultBlobContainerName;
+    private string BlobFileName { get; set; } = DefaultBlobFileName;
+    private string BlobSasToken { get; set; } = DefaultBlobSasToken;
+
     private static string DefaultEndpoint = string.Empty;
-    private static string Endpoint { get; set; } = DefaultEndpoint;
+    private static string DefaultStorageAccountName = string.Empty;
+    private static string DefaultBlobContainerName = string.Empty;
+    private static string DefaultBlobFileName = string.Empty;
+    private static string DefaultBlobSasToken = string.Empty;
+
 
     private ModuleClient? _moduleClient;
     private CancellationToken _cancellationToken;
@@ -76,6 +90,8 @@ internal class ModuleBackgroundService : BackgroundService
 
             var reportedProperties = new TwinCollection();
 
+            // endpoint
+
             if (desiredProperties.Contains("endpoint")) 
             {
                 if (desiredProperties.Contains("endpoint") && desiredProperties["endpoint"] != null)
@@ -99,6 +115,94 @@ internal class ModuleBackgroundService : BackgroundService
             if (reportedProperties.Count > 0)
             {
                 await client.UpdateReportedPropertiesAsync(reportedProperties);
+            }
+
+            // StorageAccountName - storageAccountName 
+
+            if (desiredProperties.Contains("storageAccountName")) 
+            {
+                if (desiredProperties.Contains("storageAccountName") && desiredProperties["storageAccountName"] != null)
+                {
+                    StorageAccountName = desiredProperties["storageAccountName"];
+                }               
+                else
+                {
+                    StorageAccountName = DefaultStorageAccountName;
+                }
+
+                _logger.LogInformation($"{DateTime.UtcNow} - StorageAccountName changed to {StorageAccountName}");
+
+                reportedProperties["storageAccountName"] = StorageAccountName;
+            }
+            else
+            {
+                _logger.LogInformation($"{DateTime.UtcNow} - StorageAccountName ignored");
+            }
+
+            // BlobContainerName - blobContainerName 
+
+            if (desiredProperties.Contains("blobContainerName")) 
+            {
+                if (desiredProperties.Contains("blobContainerName") && desiredProperties["blobContainerName"] != null)
+                {
+                    BlobContainerName = desiredProperties["blobContainerName"];
+                }               
+                else
+                {
+                    BlobContainerName = DefaultBlobContainerName;
+                }
+
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobContainerName changed to {BlobContainerName}");
+
+                reportedProperties["blobContainerName"] = BlobContainerName;
+            }
+            else
+            {
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobContainerName ignored");
+            }
+
+            // BlobFileName - blobFileName 
+
+            if (desiredProperties.Contains("blobFileName")) 
+            {
+                if (desiredProperties.Contains("blobFileName") && desiredProperties["blobFileName"] != null)
+                {
+                    BlobFileName = desiredProperties["blobFileName"];
+                }               
+                else
+                {
+                    BlobFileName = DefaultBlobFileName;
+                }
+
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobFileName changed to {BlobFileName}");
+
+                reportedProperties["blobFileName"] = BlobFileName;
+            }
+            else
+            {
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobFileName ignored");
+            }
+
+            // BlobSasToken - blobSasToken 
+
+            if (desiredProperties.Contains("blobSasToken")) 
+            {
+                if (desiredProperties.Contains("blobSasToken") && desiredProperties["blobSasToken"] != null)
+                {
+                    BlobSasToken = desiredProperties["blobSasToken"];
+                }               
+                else
+                {
+                    BlobSasToken = DefaultBlobSasToken;
+                }
+
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobSasToken changed to {BlobSasToken}");
+
+                reportedProperties["blobSasToken"] = BlobSasToken;
+            }
+            else
+            {
+                _logger.LogInformation($"{DateTime.UtcNow} - BlobSasToken ignored");
             }
 
             //// Close the connection to the Redis server
@@ -129,8 +233,49 @@ internal class ModuleBackgroundService : BackgroundService
                 _logger.LogInformation("Desired Redis endpoint property is empty");
             }
 
+            //// Create a credential object from the SAS token then use this and the account name to create a cloud storage connection
+
+            _logger.LogInformation("Access the blob reference using the SAS token");
+
+            var accountSAS = new StorageCredentials(BlobSasToken);
+            var storageAccount = new CloudStorageAccount(accountSAS, StorageAccountName, null, true);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var containerReference = blobClient.GetContainerReference(BlobContainerName);
+            var blobReference = containerReference.GetBlobReference(BlobFileName);
+
+            //// Download the blob to a string
+            
+            _logger.LogInformation("Download the blob from the storage account");
+
+            using var stream = new MemoryStream();
+            await blobReference.DownloadToStreamAsync(stream);
+            stream.Position = 0;
+            using var reader = new StreamReader(stream);
+            var multilineText =  reader.ReadToEnd();
+
+            _logger.LogInformation($"Blob content downloaded: '{multilineText}'");
+
+            //// Split the string into an array of lines
+            
+            var textArray = multilineText.Split(new[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} key/value pairs found");
+
             //// Update All Redis keys
             
+            foreach (var line in textArray)
+            {
+                var keyValuePair = line.Split(':');
+                var key = keyValuePair[0];
+                var value = keyValuePair[1];
+
+                var db = _redis.GetDatabase();
+                await db.StringSetAsync(key, value);
+
+                _logger.LogInformation($"{DateTime.UtcNow} - Written: {key}:{value}");
+            }
+            
+            _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} keys inserted/updated");
 
         }
         catch (AggregateException ex)
