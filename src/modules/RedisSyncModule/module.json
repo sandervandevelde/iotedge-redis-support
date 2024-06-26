@@ -4,7 +4,7 @@
     "image": {
         "repository": "svelde/iot-edge-redis-sync",
         "tag": {
-            "version": "0.0.1",
+            "version": "1.0.0",
             "platforms": {
                 "amd64": "./Dockerfile.amd64"
             }

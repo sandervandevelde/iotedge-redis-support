@@ -63,7 +63,7 @@ internal class ModuleBackgroundService : BackgroundService
         // Execute callback method for Twin desired properties updates. Function will retrieve the actual twin collection.
         await onDesiredPropertiesUpdate(new TwinCollection(), _moduleClient);
 
-        _logger.LogInformation($"{DateTime.UtcNow} - Supported desired properties: {nameof(Endpoint)} ('{DefaultEndpoint}'); {nameof(StorageAccountName)} ('{DefaultStorageAccountName}'); {nameof(BlobContainerName)} ('{DefaultBlobContainerName}'); {nameof(BlobFileName)} ('{DefaultBlobFileName}'); {nameof(BlobSasToken)} ('{DefaultBlobSasToken}')");
+        _logger.LogInformation($"{DateTime.UtcNow} - Supported desired properties: endpoint (default '{DefaultEndpoint}'); storageAccountName (default '{DefaultStorageAccountName}'); blobContainerName (default '{DefaultBlobContainerName}'); blobFileName (default '{DefaultBlobFileName}'); blobSasToken (default '{DefaultBlobSasToken}')");
     }
 
     private async Task onDesiredPropertiesUpdate(TwinCollection desiredProperties, object userContext)
@@ -265,9 +265,10 @@ internal class ModuleBackgroundService : BackgroundService
         using var reader = new StreamReader(stream);
         var multilineText =  reader.ReadToEnd();
 
-        _logger.LogInformation($"{DateTime.UtcNow} - Blob content downloaded: '{multilineText}'");
+        _logger.LogInformation($"{DateTime.UtcNow} - Blob content downloaded:");
+        _logger.LogInformation($"{multilineText}");
 
-        //// Split the string into an array of lines
+        //// Split the string into an array of lines (if /r/n is used, this can leave traces in the value of key/value pairs)
         
         var textArray = multilineText.Split(new[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -277,7 +278,10 @@ internal class ModuleBackgroundService : BackgroundService
         
         foreach (var line in textArray)
         {
-            var keyValuePair = line.Split(':');
+            var item = line.Replace("\r", string.Empty);
+            item = item.Replace("\n", string.Empty);
+
+            var keyValuePair = item.Split(':');
             var key = keyValuePair[0];
             var value = keyValuePair[1];
 
