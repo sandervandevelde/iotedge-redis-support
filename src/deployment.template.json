@@ -1,107 +1,105 @@
 {
-  "$schema-template": "4.0.0",
   "modulesContent": {
-    "$edgeAgent": {
-      "properties.desired": {
-        "schemaVersion": "1.1",
-        "runtime": {
-          "type": "docker",
-          "settings": {
-            "minDockerVersion": "v1.25",
-            "loggingOptions": "",
-            "registryCredentials": {
-              "docker": {
-                "username": "$CONTAINER_REGISTRY_USERNAME_docker",
-                "password": "$CONTAINER_REGISTRY_PASSWORD_docker",
-                "address": "docker.io"
-              }
-            }
-          }
-        },
-        "systemModules": {
-          "edgeAgent": {
-            "type": "docker",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.4",
-              "createOptions": {}
-            }
-          },
-          "edgeHub": {
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.4",
-              "createOptions": {
-                "HostConfig": {
-                  "PortBindings": {
-                    "5671/tcp": [
-                      {
-                        "HostPort": "5671"
-                      }
-                    ],
-                    "8883/tcp": [
-                      {
-                        "HostPort": "8883"
-                      }
-                    ],
-                    "443/tcp": [
-                      {
-                        "HostPort": "443"
-                      }
-                    ]
+      "$edgeAgent": {
+          "properties.desired": {
+              "schemaVersion": "1.1",
+              "runtime": {
+                  "type": "docker",
+                  "settings": {}
+              },
+              "systemModules": {
+                  "edgeAgent": {
+                      "env": {
+                          "SendRuntimeQualityTelemetry": {
+                              "value": false
+                          }
+                      },
+                      "settings": {
+                          "image": "mcr.microsoft.com/azureiotedge-agent:1.5"
+                      },
+                      "type": "docker"
+                  },
+                  "edgeHub": {
+                      "restartPolicy": "always",
+                      "settings": {
+                          "image": "mcr.microsoft.com/azureiotedge-hub:1.5",
+                          "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"443\"}],\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}]}}}"
+                      },
+                      "status": "running",
+                      "type": "docker"
                   }
-                }
+              },
+              "modules": {
+                  "hb": {
+                      "restartPolicy": "always",
+                      "settings": {
+                          "image": "iotedgefoundation/iot-edge-heartbeat:3.0.7-amd64"
+                      },
+                      "status": "running",
+                      "type": "docker"
+                  },
+                  "redis": {
+                      "restartPolicy": "always",
+                      "settings": {
+                          "image": "redis:alpine3.20",
+                          "createOptions": "{\"ExposedPorts\":{\"6379/tcp\":{},\"8001/tcp\":{}},\"HostConfig\":{\"PortBindings\":{\"6379/tcp\":[{\"HostPort\":\"6379\"}],\"8001/tcp\":[{\"HostPort\":\"8001\"}]}}}"
+                      },
+                      "status": "running",
+                      "type": "docker"
+                  },
+                  "rc": {
+                      "restartPolicy": "always",
+                      "settings": {
+                          "image": "svelde/iot-edge-redis-client:1.0.0-amd64"
+                      },
+                      "status": "running",
+                      "type": "docker"
+                  },
+                  "rs": {
+                      "restartPolicy": "always",
+                      "settings": {
+                          "image": "svelde/iot-edge-redis-sync:1.0.0-amd64"
+                      },
+                      "status": "running",
+                      "type": "docker"
+                  }
               }
-            }
           }
-        },
-        "modules": {
-          "RedisClientModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.RedisClientModule}",
-              "createOptions": {}
-            }
-          },
-          "SimulatedTemperatureSensor": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.4",
-              "createOptions": {}
-            }
-          },
-          "RedisSyncModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.RedisSyncModule}",
-              "createOptions": {}
-            }
+      },
+      "$edgeHub": {
+          "properties.desired": {
+              "schemaVersion": "1.1",
+              "storeAndForwardConfiguration": {
+                  "timeToLiveSecs": 7200000
+              },
+              "routes": {
+                  "hb2upstream": {
+                      "route": "FROM /messages/modules/hb/outputs/output1 into $upstream"
+                  }
+              }
           }
-        }
+      },
+      "hb": {
+          "properties.desired": {
+              "interval": 60000
+          }
+      },
+      "redis": {
+          "properties.desired": {}
+      },
+      "rc": {
+          "properties.desired": {
+              "endpoint": "192.168.2.6:6379"
+          }
+      },
+      "rs": {
+          "properties.desired": {
+              "endpoint": "192.168.2.6:6379",
+              "storageAccountName": "abc",
+              "blobContainerName": "redis",
+              "blobFileName": "update.csv",
+              "blobSasToken": "xyz"
+          }
       }
-    },
-    "$edgeHub": {
-      "properties.desired": {
-        "schemaVersion": "1.1",
-        "routes": {
-          "RedisClientModuleToIoTHub": "FROM /messages/modules/RedisClientModule/outputs/* INTO $upstream",
-          "sensorToRedisClientModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/RedisClientModule/inputs/input1\")",
-          "RedisSyncModuleToIoTHub": "FROM /messages/modules/RedisSyncModule/outputs/* INTO $upstream"
-        },
-        "storeAndForwardConfiguration": {
-          "timeToLiveSecs": 7200
-        }
-      }
-    }
   }
 }
