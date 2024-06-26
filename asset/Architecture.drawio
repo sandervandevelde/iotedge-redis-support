@@ -1,0 +1,69 @@
+<mxfile host="Electron" modified="2024-06-26T10:01:44.514Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.5.3 Chrome/124.0.6367.207 Electron/30.0.6 Safari/537.36" etag="4xjm3bewvvGUDJOW3QhJ" version="24.5.3" type="device">
+  <diagram name="Page-1" id="JbYCNI1cYmRIw7J5gEiL">
+    <mxGraphModel dx="1022" dy="854" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-1" value="Linux Ubuntu 22.04LTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="20" y="420" width="570" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-2" value="Moby Docker container runtime" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="150" y="340" width="440" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-3" value="Azure IoT Edge Runtime&lt;div&gt;daemon&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="20" y="340" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-4" value="" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.security.lock_protected;" vertex="1" parent="1">
+          <mxGeometry x="10" y="380" width="20" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-6" value="EdgeAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="150" y="262" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-7" value="EdgeHub" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="470" y="262" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="-zDKfFpPTj61JmWcqC2I-8" target="-zDKfFpPTj61JmWcqC2I-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="116" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-8" value="Redis&lt;div&gt;Container&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="297" y="86" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-9" value="Redis Client&lt;div&gt;Custom module&lt;/div&gt;&lt;div&gt;Direct Methods&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="176" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="-zDKfFpPTj61JmWcqC2I-10" target="-zDKfFpPTj61JmWcqC2I-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-10" value="Redis Sync&lt;div&gt;Custom module&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="391" y="176" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-12" value="" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Cache_Redis_Product.svg;" vertex="1" parent="1">
+          <mxGeometry x="277" y="66" width="50" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-15" value="Blob Storage Account&lt;div&gt;update.csv&lt;/div&gt;" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/storage/Storage_Accounts.svg;" vertex="1" parent="1">
+          <mxGeometry x="680" y="186" width="65" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-16" value="IoT Hub&lt;div&gt;IoT Edge device&lt;/div&gt;&lt;div&gt;registration&lt;/div&gt;" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/iot/IoT_Hub.svg;" vertex="1" parent="1">
+          <mxGeometry x="840" y="254" width="64" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.031;entryY=0.594;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="-zDKfFpPTj61JmWcqC2I-7" target="-zDKfFpPTj61JmWcqC2I-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.023;entryY=0.394;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="-zDKfFpPTj61JmWcqC2I-10" target="-zDKfFpPTj61JmWcqC2I-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="-zDKfFpPTj61JmWcqC2I-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.985;entryY=0.433;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="-zDKfFpPTj61JmWcqC2I-16" target="-zDKfFpPTj61JmWcqC2I-15">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="872" y="209" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
