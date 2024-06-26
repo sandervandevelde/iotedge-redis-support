@@ -62,6 +62,8 @@ internal class ModuleBackgroundService : BackgroundService
 
         // Execute callback method for Twin desired properties updates. Function will retrieve the actual twin collection.
         await onDesiredPropertiesUpdate(new TwinCollection(), _moduleClient);
+
+        _logger.LogInformation($"{DateTime.UtcNow} - Supported desired properties: {nameof(Endpoint)} ('{DefaultEndpoint}'); {nameof(StorageAccountName)} ('{DefaultStorageAccountName}'); {nameof(BlobContainerName)} ('{DefaultBlobContainerName}'); {nameof(BlobFileName)} ('{DefaultBlobFileName}'); {nameof(BlobSasToken)} ('{DefaultBlobSasToken}')");
     }
 
     private async Task onDesiredPropertiesUpdate(TwinCollection desiredProperties, object userContext)
