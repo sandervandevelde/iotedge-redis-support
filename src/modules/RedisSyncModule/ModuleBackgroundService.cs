@@ -51,14 +51,14 @@ internal class ModuleBackgroundService : BackgroundService
 
         // Reconnect is not implented because we'll let docker restart the process when the connection is lost
         _moduleClient.SetConnectionStatusChangesHandler((status, reason) => 
-            _logger.LogWarning("Connection changed: Status: {status} Reason: {reason}", status, reason));
+            _logger.LogWarning($"{DateTime.UtcNow} - Connection changed: Status: {status} Reason: {reason}"));
 
         // Attach callback for Twin desired properties updates
         await _moduleClient.SetDesiredPropertyUpdateCallbackAsync(onDesiredPropertiesUpdate, _moduleClient);
 
         await _moduleClient.OpenAsync(cancellationToken);
 
-        _logger.LogInformation("IoT Hub module client initialized.");
+        _logger.LogInformation($"{DateTime.UtcNow} - IoT Hub module client initialized.");
 
         // Execute callback method for Twin desired properties updates. Function will retrieve the actual twin collection.
         await onDesiredPropertiesUpdate(new TwinCollection(), _moduleClient);
@@ -205,78 +205,26 @@ internal class ModuleBackgroundService : BackgroundService
                 _logger.LogInformation($"{DateTime.UtcNow} - BlobSasToken ignored");
             }
 
-            //// Close the connection to the Redis server
-
-            if (_redis != null)
+            if (Endpoint != DefaultEndpoint)
             {
-                _redis.Close();
-                _redis.Dispose();
-                _redis = null;
-
-                _logger.LogInformation("Redis endpoint is closed");
-            }
-
-            //// Open a connection to the Redis server
-
-            if (!string.IsNullOrEmpty(Endpoint))
-            {
-                _redis = ConnectionMultiplexer.Connect(
-                    new ConfigurationOptions
-                    {
-                        EndPoints = { Endpoint }
-                    });
-
-                _logger.LogInformation("Redis endpoint is connected");
+                ReconnectRedis();
             }
             else
             {
-                _logger.LogInformation("Desired Redis endpoint property is empty");
+                _logger.LogInformation($"{DateTime.UtcNow} - No Redis endpoint to open.");
             }
 
-            //// Create a credential object from the SAS token then use this and the account name to create a cloud storage connection
-
-            _logger.LogInformation("Access the blob reference using the SAS token");
-
-            var accountSAS = new StorageCredentials(BlobSasToken);
-            var storageAccount = new CloudStorageAccount(accountSAS, StorageAccountName, null, true);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-            var containerReference = blobClient.GetContainerReference(BlobContainerName);
-            var blobReference = containerReference.GetBlobReference(BlobFileName);
-
-            //// Download the blob to a string
-            
-            _logger.LogInformation("Download the blob from the storage account");
-
-            using var stream = new MemoryStream();
-            await blobReference.DownloadToStreamAsync(stream);
-            stream.Position = 0;
-            using var reader = new StreamReader(stream);
-            var multilineText =  reader.ReadToEnd();
-
-            _logger.LogInformation($"Blob content downloaded: '{multilineText}'");
-
-            //// Split the string into an array of lines
-            
-            var textArray = multilineText.Split(new[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-
-            _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} key/value pairs found");
-
-            //// Update All Redis keys
-            
-            foreach (var line in textArray)
+            if (BlobSasToken != DefaultBlobSasToken
+                && StorageAccountName != DefaultStorageAccountName
+                && BlobContainerName != DefaultBlobContainerName
+                && BlobFileName != DefaultBlobFileName)
             {
-                var keyValuePair = line.Split(':');
-                var key = keyValuePair[0];
-                var value = keyValuePair[1];
-
-                var db = _redis.GetDatabase();
-                await db.StringSetAsync(key, value);
-
-                _logger.LogInformation($"{DateTime.UtcNow} - Written: {key}:{value}");
+                await UpdateRedis();
             }
-            
-            _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} keys inserted/updated");
-
+            else
+            {
+                _logger.LogInformation($"{DateTime.UtcNow} - No blob file to access.");
+            }
         }
         catch (AggregateException ex)
         {
@@ -291,5 +239,76 @@ internal class ModuleBackgroundService : BackgroundService
         {
             _logger.LogInformation($"{DateTime.UtcNow} - Error when receiving desired properties: {ex.Message}");
         }
+    }
+
+    private async Task UpdateRedis()
+    {
+        //// Create a credential object from the SAS token then use this and the account name to create a cloud storage connection
+
+        _logger.LogInformation($"{DateTime.UtcNow} - Access the blob reference using the SAS token");
+
+        var accountSAS = new StorageCredentials(BlobSasToken);
+        var storageAccount = new CloudStorageAccount(accountSAS, StorageAccountName, null, true);
+        var blobClient = storageAccount.CreateCloudBlobClient();
+        var containerReference = blobClient.GetContainerReference(BlobContainerName);
+        var blobReference = containerReference.GetBlobReference(BlobFileName);
+
+        //// Download the blob to a string
+        
+        _logger.LogInformation($"{DateTime.UtcNow} - Download the blob from the storage account");
+
+        using var stream = new MemoryStream();
+        await blobReference.DownloadToStreamAsync(stream);
+        stream.Position = 0;
+        using var reader = new StreamReader(stream);
+        var multilineText =  reader.ReadToEnd();
+
+        _logger.LogInformation($"{DateTime.UtcNow} - Blob content downloaded: '{multilineText}'");
+
+        //// Split the string into an array of lines
+        
+        var textArray = multilineText.Split(new[] { System.Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+        _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} key/value pairs found");
+
+        //// Update All Redis keys
+        
+        foreach (var line in textArray)
+        {
+            var keyValuePair = line.Split(':');
+            var key = keyValuePair[0];
+            var value = keyValuePair[1];
+
+            var db = _redis.GetDatabase();
+            await db.StringSetAsync(key, value);
+
+            _logger.LogInformation($"{DateTime.UtcNow} - Written: {key}:{value}");
+        }
+        
+        _logger.LogInformation($"{DateTime.UtcNow} - {textArray.Length} keys inserted/updated");
+    }
+
+    private void ReconnectRedis()
+    {
+        //// Close the connection to the Redis server
+
+        if (_redis != null)
+        {
+            _redis.Close();
+            _redis.Dispose();
+            _redis = null;
+
+            _logger.LogInformation($"{DateTime.UtcNow} - Redis endpoint is closed");
+        }
+
+        //// Open a connection to the Redis server
+
+        _redis = ConnectionMultiplexer.Connect(
+            new ConfigurationOptions
+            {
+                EndPoints = { Endpoint }
+            });
+
+        _logger.LogInformation($"{DateTime.UtcNow} - Redis endpoint is connected");
     }
 }

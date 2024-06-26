@@ -37,21 +37,21 @@ internal class ModuleBackgroundService : BackgroundService
 
         // Reconnect is not implented because we'll let docker restart the process when the connection is lost
         _moduleClient.SetConnectionStatusChangesHandler((status, reason) => 
-            _logger.LogWarning("ModuleClient connection changed: Status: {status} Reason: {reason}", status, reason));
+            _logger.LogWarning($"{DateTime.UtcNow} - ModuleClient connection changed: Status: {status} Reason: {reason}"));
 
         // Create a handler for the direct method call
         await _moduleClient.SetMethodHandlerAsync("GetItem", GetItem, _moduleClient);
         await _moduleClient.SetMethodHandlerAsync("SetItem", SetItem, _moduleClient);
 
-        _logger.LogInformation($"Module Input route 'GetItem' is attached.");
-        _logger.LogInformation($"Module Output route 'SetItem' is reserved.");
+        _logger.LogInformation($"{DateTime.UtcNow} - Module Input route 'GetItem' is attached.");
+        _logger.LogInformation($"{DateTime.UtcNow} - Module Output route 'SetItem' is reserved.");
 
         // Attach callback for Twin desired properties updates
         await _moduleClient.SetDesiredPropertyUpdateCallbackAsync(onDesiredPropertiesUpdate, _moduleClient);
 
         await _moduleClient.OpenAsync(cancellationToken);
 
-        _logger.LogInformation("IoT Hub module client initialized.");
+        _logger.LogInformation($"{DateTime.UtcNow} - IoT Hub module client initialized.");
 
         // Execute callback method for Twin desired properties updates. Function will retrieve the actual twin collection.
         await onDesiredPropertiesUpdate(new TwinCollection(), _moduleClient);
@@ -108,32 +108,13 @@ internal class ModuleBackgroundService : BackgroundService
                 await client.UpdateReportedPropertiesAsync(reportedProperties);
             }
 
-            //// Close the connection to the Redis server
-
-            if (_redis != null)
+            if (Endpoint != DefaultEndpoint)
             {
-                _redis.Close();
-                _redis.Dispose();
-                _redis = null;
-
-                _logger.LogInformation("Redis endpoint is closed");
-            }
-
-            //// Open a connection to the Redis server
-
-            if (!string.IsNullOrEmpty(Endpoint))
-            {
-                _redis = ConnectionMultiplexer.Connect(
-                    new ConfigurationOptions
-                    {
-                        EndPoints = { Endpoint }
-                    });
-
-                _logger.LogInformation("Redis endpoint is connected");
+                ReconnectRedis();
             }
             else
             {
-                _logger.LogInformation("Desired Redis endpoint property is empty");
+                _logger.LogInformation($"{DateTime.UtcNow} - No Redis endpoint to open");
             }
         }
         catch (AggregateException ex)
@@ -149,6 +130,30 @@ internal class ModuleBackgroundService : BackgroundService
         {
             _logger.LogInformation($"{DateTime.UtcNow} - Error when receiving desired properties: {ex.Message}");
         }
+    }
+
+    private void ReconnectRedis()
+    {
+        //// Close the connection to the Redis server
+
+        if (_redis != null)
+        {
+            _redis.Close();
+            _redis.Dispose();
+            _redis = null;
+
+            _logger.LogInformation($"{DateTime.UtcNow} - Redis endpoint is closed");
+        }
+
+        //// Open a connection to the Redis server
+
+        _redis = ConnectionMultiplexer.Connect(
+            new ConfigurationOptions
+            {
+                EndPoints = { Endpoint }
+            });
+
+        _logger.LogInformation($"{DateTime.UtcNow} - Redis endpoint is connected");
     }
 
     private Task<MethodResponse> GetItem(MethodRequest methodRequest, object userContext)
